@@ -4,23 +4,26 @@ import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
 import * as custom from "aws-cdk-lib/custom-resources";
 import { Construct } from "constructs";
-// import * as sqs from 'aws-cdk-lib/aws-sqs';
-import { generateBatch } from "../shared/util";
-
 import * as apig from "aws-cdk-lib/aws-apigateway";
+import { generateBatch } from "../shared/util";
+import { userData } from "../seed/users";
+import { movieReviews } from "../seed/reviews";
+import { DynamoDBStack } from "./database-stack";
 
 export class ApiStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
       // Create the DynamoDB stack
-  
+      const databaseStack = new DynamoDBStack(this, "DatabaseStack");
     
         // REST API 
-        const api = new apig.RestApi(this, "RestAPI", {
-          description: "demo api",
+        const api = new apig.RestApi(this, "MovieReviewsApi", {
+          restApiName: 'Movie Reviews Service',
+          description: 'This service serves movie reviews.',
           deployOptions: {
-            stageName: "dev",
+            stageName: 'dev',
           },
+          
           // 👇 enable CORS
           defaultCorsPreflightOptions: {
             allowHeaders: ["Content-Type", "X-Amz-Date"],
@@ -30,8 +33,31 @@ export class ApiStack extends cdk.Stack {
           },
         });
 
+    // Functions 
+    const getRevievsByMovieIdFn  = new lambdanode.NodejsFunction(
+      this,
+      "GetReviewsByMovieIdFunction",
+      {
+        architecture: lambda.Architecture.ARM_64,
+        runtime: lambda.Runtime.NODEJS_16_X,
+        entry: `${__dirname}/../lambdas/getReviewsByMovieId.ts`,
+        timeout: cdk.Duration.seconds(10),
+        memorySize: 128,
+        environment: {
+          TABLE_NAME: databaseStack.movieReviewsTable.tableName,
+          REGION: 'eu-west-1',
+        },
+      }
+      );
 
-
+      const reviewsEndpoint = api.root.addResource('reviews');
+          // Add a path parameter 'movieId' under 'reviews'
+    const movieIdResource = reviewsEndpoint.addResource('{movieId}');
+    // Associate the GET method with the Lambda function
+    movieIdResource.addMethod('GET', new apig.LambdaIntegration(getRevievsByMovieIdFn));
+      
+      
+      databaseStack.movieReviewsTable.grantReadData(getRevievsByMovieIdFn);
       }
     }
     

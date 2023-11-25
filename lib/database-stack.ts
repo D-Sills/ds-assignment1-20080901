@@ -1,6 +1,4 @@
 import * as cdk from "aws-cdk-lib";
-import * as lambdanode from "aws-cdk-lib/aws-lambda-nodejs";
-import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
 import * as custom from "aws-cdk-lib/custom-resources";
 import { Construct } from "constructs";
@@ -13,15 +11,6 @@ export class DynamoDBStack extends cdk.Stack {
     usersTable: dynamodb.Table;
     movieReviewsTable: dynamodb.Table;
     
-    addReviewFn: NodejsFunction;
-    updateReviewFn: NodejsFunction;
-    getRevievsByMovieIdFn: NodejsFunction;
-    getReviewsByUserIdFn: NodejsFunction;
-    getReviewsByMovieIdAndUserIdFn: NodejsFunction;
-    getReviewsByMovieIdAndUserIdFnTrans: NodejsFunction;
-    getReviewsByMovieIdAndYearFn: NodejsFunction;
-    getReviewsByMovieIdAndRatingFn: NodejsFunction;
-    
     constructor(scope: Construct, id: string, props?: cdk.StackProps) {
         super(scope, id, props);
     
@@ -31,7 +20,7 @@ export class DynamoDBStack extends cdk.Stack {
             partitionKey: { name: 'movieId', type: dynamodb.AttributeType.NUMBER },
             sortKey: { name: 'reviewDate', type: dynamodb.AttributeType.STRING },
             tableName: 'MovieReviews',
-            removalPolicy: cdk.RemovalPolicy.DESTROY, // NOT recommended for production code
+            
           });
         
           // Global Secondary Index for ReviewerId
@@ -46,7 +35,7 @@ export class DynamoDBStack extends cdk.Stack {
             billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
             partitionKey: { name: 'userId', type: dynamodb.AttributeType.STRING },
             tableName: 'Users',
-            removalPolicy: cdk.RemovalPolicy.DESTROY, // NOT recommended for production code
+            
           });
     
             // Seed data

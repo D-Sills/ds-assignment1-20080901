@@ -9,7 +9,7 @@
     movieId: number;
     reviewerId: string;
     reviewDate: string;
-    Content: string;
+    content: string;
     rating: number;
   }
   
