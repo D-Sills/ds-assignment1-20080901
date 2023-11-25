@@ -8,6 +8,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   try {
     console.log("Event: ", event);
     const movieId = event.pathParameters?.movieId ? parseInt(event.pathParameters.movieId) : undefined;
+    const minRating = event.queryStringParameters?.minRating ? parseFloat(event.queryStringParameters.minRating) : undefined;
 
     if (!movieId) {
       return {
@@ -21,6 +22,14 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       TableName: process.env.TABLE_NAME,
       KeyConditionExpression: 'movieId = :movieId',
       ExpressionAttributeValues: { ':movieId': movieId },
+      // Add FilterExpression if minRating is provided
+      ...(minRating && {
+        FilterExpression: 'rating >= :minRating',
+        ExpressionAttributeValues: {
+          ':movieId': movieId,
+          ':minRating': minRating,
+        },
+      }),
     };
 
     const response = await ddbDocClient.send(new QueryCommand(queryParams));

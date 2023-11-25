@@ -49,12 +49,12 @@ export class ApiStack extends cdk.Stack {
         },
       }
       );
+      
+       // Resource for '/{movieId}/reviews'
+       const movieResource = api.root.addResource('{movieId}');
+       const movieReviewsResource = movieResource.addResource('reviews');
+       movieReviewsResource.addMethod('GET', new apig.LambdaIntegration(getRevievsByMovieIdFn));
 
-      const reviewsEndpoint = api.root.addResource('reviews');
-          // Add a path parameter 'movieId' under 'reviews'
-    const movieIdResource = reviewsEndpoint.addResource('{movieId}');
-    // Associate the GET method with the Lambda function
-    movieIdResource.addMethod('GET', new apig.LambdaIntegration(getRevievsByMovieIdFn));
       
       
       databaseStack.movieReviewsTable.grantReadData(getRevievsByMovieIdFn);

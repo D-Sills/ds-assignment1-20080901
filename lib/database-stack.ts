@@ -20,7 +20,7 @@ export class DynamoDBStack extends cdk.Stack {
             partitionKey: { name: 'movieId', type: dynamodb.AttributeType.NUMBER },
             sortKey: { name: 'reviewDate', type: dynamodb.AttributeType.STRING },
             tableName: 'MovieReviews',
-            
+            removalPolicy: cdk.RemovalPolicy.DESTROY,
           });
         
           // Global Secondary Index for ReviewerId
@@ -35,7 +35,7 @@ export class DynamoDBStack extends cdk.Stack {
             billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
             partitionKey: { name: 'userId', type: dynamodb.AttributeType.STRING },
             tableName: 'Users',
-            
+            removalPolicy: cdk.RemovalPolicy.DESTROY,
           });
     
             // Seed data
