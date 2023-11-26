@@ -45,7 +45,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
             reviewDate: reviewData.reviewDate, 
             reviewerName: reviewData.reviewerName,
             content: reviewData.content,
-            
+            rating: reviewData.rating,
         };
 
         // Insert review into DynamoDB
