@@ -1,13 +1,9 @@
 import * as cdk from "aws-cdk-lib";
 import * as lambdanode from "aws-cdk-lib/aws-lambda-nodejs";
 import * as lambda from "aws-cdk-lib/aws-lambda";
-import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
-import * as custom from "aws-cdk-lib/custom-resources";
 import { Construct } from "constructs";
 import * as apig from "aws-cdk-lib/aws-apigateway";
-import { generateBatch } from "../shared/util";
-import { userData } from "../seed/users";
-import { movieReviews } from "../seed/reviews";
+import * as iam from "aws-cdk-lib/aws-iam";
 import { DynamoDBStack } from "./database-stack";
 
 export class ApiStack extends cdk.Stack {
@@ -32,6 +28,18 @@ export class ApiStack extends cdk.Stack {
             allowOrigins: ["*"],
           },
         });
+
+    // Define the IAM role
+    const lambdaRole = new iam.Role(this, 'LambdaRole', {
+      assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
+    });
+
+    // Add AWS Translate permissions to the role
+    lambdaRole.addToPolicy(new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      actions: ['translate:TranslateText'],
+      resources: ['*'],  // Adjust the resource as necessary
+    }));
 
     // Functions 
     const getRevievsByMovieIdFn  = new lambdanode.NodejsFunction(
@@ -63,8 +71,10 @@ export class ApiStack extends cdk.Stack {
             TABLE_NAME: databaseStack.movieReviewsTable.tableName,
             REGION: 'eu-west-1',
           },
+          role: lambdaRole,
         }
         );
+  
         
         const getReviewsByReviewerFn = new lambdanode.NodejsFunction(
           this,
@@ -130,6 +140,7 @@ export class ApiStack extends cdk.Stack {
       const reviewParameterResource = movieReviewsResource.addResource('{parameter}');
       reviewParameterResource.addMethod('GET', new apig.LambdaIntegration(getReviewsByMovieIdAndParameterFn));
       reviewParameterResource.addMethod('PUT', new apig.LambdaIntegration(updateReviewFn));
+
       
       // Resource for '/reviews/{reviewId}'
     const reviewsResource = moviesResource.addResource('reviews');

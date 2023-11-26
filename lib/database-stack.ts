@@ -29,6 +29,13 @@ export class DynamoDBStack extends cdk.Stack {
             partitionKey: { name: 'reviewerName', type: dynamodb.AttributeType.STRING },
             sortKey: { name: 'reviewDate', type: dynamodb.AttributeType.STRING },
           });
+          
+          // New GSI for querying by reviewDate
+this.movieReviewsTable.addGlobalSecondaryIndex({
+  indexName: 'reviewDateIndex',
+  partitionKey: { name: 'movieId', type: dynamodb.AttributeType.NUMBER }, // Assuming movieId as partition key
+  sortKey: { name: 'reviewDate', type: dynamodb.AttributeType.STRING },
+});
         
           // DynamoDB table for users
           this.usersTable = new dynamodb.Table(this, 'Users', {

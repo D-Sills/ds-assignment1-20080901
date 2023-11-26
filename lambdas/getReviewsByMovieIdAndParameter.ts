@@ -1,9 +1,9 @@
 import { APIGatewayProxyHandlerV2 } from "aws-lambda";
-import { DynamoDBDocumentClient, QueryCommand } from "@aws-sdk/lib-dynamodb";
-import { DynamoDBClient, QueryCommandInput } from "@aws-sdk/client-dynamodb";
+import { DynamoDBDocumentClient, QueryCommand, QueryCommandInput } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { TranslateClient, TranslateTextCommand } from "@aws-sdk/client-translate";
 
-const ddbDocClient = DynamoDBDocumentClient.from(new DynamoDBClient({ region: process.env.REGION }));
+const ddbDocClient = createDDbDocClient();
 
 export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   try {
@@ -19,22 +19,32 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
         body: JSON.stringify({ message: "Missing movieId or second parameter" }),
       };
     }
-    const queryParams = {
-      TableName: process.env.TABLE_NAME,
-      IndexName: 'reviewerNameIndex', // Query the GSI
-      KeyConditionExpression: 'movieId = :movieId',
-      ExpressionAttributeValues: {
-        ':movieId': movieId,
-        ':parameter': secondParameter,
-      },
-    };
 
+    let queryParams: QueryCommandInput; // pretty sure this is bad practice, but I don't know how to fix it
+    if (/^\d{4}$/.test(secondParameter)) { // Year query
+      queryParams = {
+        TableName: process.env.TABLE_NAME,
+        IndexName: 'reviewDateIndex',
+        KeyConditionExpression: 'movieId = :movieId AND begins_with(reviewDate, :year)',
+        ExpressionAttributeValues: {
+          ':movieId': movieId,
+          ':year': secondParameter,
+        },
+      };
+    } else { // ReviewerName query
+      queryParams = {
+        TableName: process.env.TABLE_NAME,
+        IndexName: 'reviewerNameIndex',
+        KeyConditionExpression: 'reviewerName = :reviewerName',
+        ExpressionAttributeValues: {
+          ':reviewerName': secondParameter,
+        },
+      };
+    }
 
     const response = await ddbDocClient.send(new QueryCommand(queryParams));
     let items = response.Items || [];
-    if (/^\d{4}$/.test(secondParameter)) {
-      items = items.filter(item => item.reviewDate.startsWith(secondParameter));
-    }
+  
     // Translation
     if (language && items) {
       const translateClient = new TranslateClient({ region: process.env.REGION });
@@ -65,3 +75,16 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
 };
 
 
+function createDDbDocClient() {
+  const ddbClient = new DynamoDBClient({ region: process.env.REGION });
+  const marshallOptions = {
+    convertEmptyValues: true,
+    removeUndefinedValues: true,
+    convertClassInstanceToMap: true,
+  };
+  const unmarshallOptions = {
+    wrapNumbers: false,
+  };
+  const translateConfig = { marshallOptions, unmarshallOptions };
+  return DynamoDBDocumentClient.from(ddbClient, translateConfig);
+}
