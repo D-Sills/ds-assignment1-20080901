@@ -66,11 +66,28 @@ export class ApiStack extends cdk.Stack {
         }
         );
         
+        const getReviewsByReviewerFn = new lambdanode.NodejsFunction(
+          this,
+          "GetReviewsByReviewerFunction",
+          {
+            architecture: lambda.Architecture.ARM_64,
+            runtime: lambda.Runtime.NODEJS_16_X,
+            entry: `${__dirname}/../lambdas/getReviewsByReviewer.ts`,
+            timeout: cdk.Duration.seconds(10),
+            memorySize: 128,
+            environment: {
+              TABLE_NAME: databaseStack.movieReviewsTable.tableName,
+              REGION: 'eu-west-1',
+            },
+          }
+          );
           
   
       
+          const moviesResource = api.root.addResource('movies');
+      
        // Resource for '/{movieId}/reviews'
-       const movieResource = api.root.addResource('{movieId}');
+       const movieResource = moviesResource.addResource('{movieId}');
        const movieReviewsResource = movieResource.addResource('reviews');
        movieReviewsResource.addMethod('GET', new apig.LambdaIntegration(getRevievsByMovieIdFn));
       
@@ -79,9 +96,16 @@ export class ApiStack extends cdk.Stack {
       reviewParameterResource.addMethod('GET', new apig.LambdaIntegration(getReviewsByMovieIdAndParameterFn));
       
       
+      // Resource for '/reviews/{reviewId}'
+    const reviewsResource = moviesResource.addResource('reviews');
+    const reviewIdResource = reviewsResource.addResource('{reviewerName}');
+    reviewIdResource.addMethod('GET', new apig.LambdaIntegration(getReviewsByReviewerFn));
       
+      
+      // permissions
       databaseStack.movieReviewsTable.grantReadData(getRevievsByMovieIdFn);
       databaseStack.movieReviewsTable.grantReadData(getReviewsByMovieIdAndParameterFn);
+      databaseStack.movieReviewsTable.grantReadData(getReviewsByReviewerFn);
       }
     }
     

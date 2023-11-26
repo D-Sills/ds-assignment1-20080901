@@ -25,8 +25,8 @@ export class DynamoDBStack extends cdk.Stack {
         
           // Global Secondary Index for ReviewerId
           this.movieReviewsTable.addGlobalSecondaryIndex({
-            indexName: 'reviewerIndex',
-            partitionKey: { name: 'reviewerId', type: dynamodb.AttributeType.STRING },
+                indexName: 'reviewerNameIndex',
+            partitionKey: { name: 'reviewerName', type: dynamodb.AttributeType.STRING },
             sortKey: { name: 'reviewDate', type: dynamodb.AttributeType.STRING },
           });
         
