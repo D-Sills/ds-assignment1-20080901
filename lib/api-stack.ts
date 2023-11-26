@@ -239,11 +239,7 @@ export class ApiStack extends cdk.Stack {
         const logoutEndpoint = authEndpoint.addResource("logout");
         logoutEndpoint.addMethod(
             "POST",
-            new apig.LambdaIntegration(logoutUserFn),
-            {
-                authorizer: authorizer,
-                authorizationType: apig.AuthorizationType.COGNITO,
-            }
+            new apig.LambdaIntegration(logoutUserFn)
         );
 
         // permissions for the database

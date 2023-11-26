@@ -12,7 +12,6 @@ const ddbDocClient = createDDbDocClient();
 
 export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     try {
-        // Parse request body
         const reviewData: MovieReview = event.body
             ? JSON.parse(event.body)
             : undefined;

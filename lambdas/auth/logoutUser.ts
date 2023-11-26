@@ -10,24 +10,35 @@ const cognitoClient = new CognitoIdentityProviderClient({
 
 export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     try {
-        const accessToken =
-            event.headers.Authorization || event.headers.authorization;
+        // Extracting the Authorization header
+        const authHeader = event.headers.Authorization || event.headers.authorization;
 
-        if (!accessToken) {
+        if (!authHeader) {
             return {
                 statusCode: 401,
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    message: "Access token is required for logout",
+                    message: "Authorization header is missing",
                 }),
             };
         }
 
-        await cognitoClient.send(
-            new GlobalSignOutCommand({
-                AccessToken: accessToken,
-            })
-        );
+        // Extracting the token from the Authorization header
+        const tokenParts = authHeader.split(' ');
+        if (tokenParts.length !== 2 || tokenParts[0] !== 'Bearer') {
+            return {
+                statusCode: 401,
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    message: "Invalid Authorization header format",
+                }),
+            };
+        }
+        const accessToken = tokenParts[1];
+
+        console.log("Extracted Access Token:", accessToken);
+
+        await cognitoClient.send(new GlobalSignOutCommand({ AccessToken: accessToken }));
 
         return {
             statusCode: 200,
@@ -35,11 +46,11 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
             body: JSON.stringify({ message: "Successfully logged out" }),
         };
     } catch (error) {
-        console.error(error);
+        console.error("Error during logout:", error);
         return {
             statusCode: 500,
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ error: "Logout failed" }),
+            body: JSON.stringify({ error: "Logout failed", details: error.message }),
         };
     }
 };
