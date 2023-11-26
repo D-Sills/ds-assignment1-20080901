@@ -32,8 +32,8 @@ export class DynamoDBStack extends cdk.Stack {
                 type: dynamodb.AttributeType.STRING,
             },
             sortKey: {
-                name: "reviewDate",
-                type: dynamodb.AttributeType.STRING,
+                name: "movieId",
+                type: dynamodb.AttributeType.NUMBER,
             },
         });
 
