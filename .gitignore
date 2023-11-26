@@ -9,5 +9,3 @@ cdk.out
 # Misc
 .DS_Store
 
-*.schema.json
-shared\types.schema.json

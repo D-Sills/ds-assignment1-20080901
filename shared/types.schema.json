@@ -1,0 +1,25 @@
+{
+    "definitions": {
+        "MovieReview": {
+          "type": "object",
+          "properties": {
+            "movieId": {
+              "type": "number"
+            },
+            "reviewerName": {
+              "type": "string"
+            },
+            "reviewDate": {
+              "type": "string"
+            },
+            "content": {
+              "type": "string"
+            },
+            "rating": {
+              "type": "number"
+            }
+          },
+          "required": ["movieId", "reviewerName", "reviewDate", "content", "rating"]
+        }
+      }
+}

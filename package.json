@@ -21,6 +21,8 @@
     "typescript-json-schema": "^0.62.0"
   },
   "dependencies": {
+    "@aws-sdk/client-cognito-identity": "^3.454.0",
+    "@aws-sdk/client-cognito-identity-provider": "^3.454.0",
     "@aws-sdk/client-dynamodb": "^3.67.0",
     "@aws-sdk/client-sqs": "^3.360.0",
     "@aws-sdk/client-translate": "^3.454.0",
