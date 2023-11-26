@@ -7,7 +7,7 @@
   
   export type MovieReview = {
     movieId: number;
-    reviewerId: string;
+    reviewerName: string;
     reviewDate: string;
     content: string;
     rating: number;
