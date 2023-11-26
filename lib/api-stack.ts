@@ -98,6 +98,22 @@ export class ApiStack extends cdk.Stack {
           }
           );
       
+        const updateReviewFn = new lambdanode.NodejsFunction(
+          this,
+          "UpdateReviewFunction",
+          {
+            architecture: lambda.Architecture.ARM_64,
+            runtime: lambda.Runtime.NODEJS_16_X,
+            entry: `${__dirname}/../lambdas/updateReview.ts`,
+            timeout: cdk.Duration.seconds(10),
+            memorySize: 128,
+            environment: {
+              TABLE_NAME: databaseStack.movieReviewsTable.tableName,
+              REGION: 'eu-west-1',
+            },
+          }
+          );
+      
           const moviesResource = api.root.addResource('movies');
       
           const movieAddReviewResource = moviesResource.addResource('review');
@@ -107,14 +123,13 @@ export class ApiStack extends cdk.Stack {
        const movieResource = moviesResource.addResource('{movieId}');
        const movieReviewsResource = movieResource.addResource('reviews');
        movieReviewsResource.addMethod('GET', new apig.LambdaIntegration(getRevievsByMovieIdFn));
-       
       
       
       
             // Sub-resource for reviewerName or year
       const reviewParameterResource = movieReviewsResource.addResource('{parameter}');
       reviewParameterResource.addMethod('GET', new apig.LambdaIntegration(getReviewsByMovieIdAndParameterFn));
-      
+      reviewParameterResource.addMethod('PUT', new apig.LambdaIntegration(updateReviewFn));
       
       // Resource for '/reviews/{reviewId}'
     const reviewsResource = moviesResource.addResource('reviews');
@@ -127,7 +142,7 @@ export class ApiStack extends cdk.Stack {
       databaseStack.movieReviewsTable.grantReadData(getReviewsByMovieIdAndParameterFn);
       databaseStack.movieReviewsTable.grantReadData(getReviewsByReviewerFn);
       databaseStack.movieReviewsTable.grantWriteData(addReviewFn);
-      
+      databaseStack.movieReviewsTable.grantWriteData(updateReviewFn);
       }
     }
     

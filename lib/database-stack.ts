@@ -14,13 +14,14 @@ export class DynamoDBStack extends cdk.Stack {
         super(scope, id, props);
     
         // DynamoDB table for reviews
-         this.movieReviewsTable = new dynamodb.Table(this, 'MovieReviews', {
-            billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
-            partitionKey: { name: 'movieId', type: dynamodb.AttributeType.NUMBER },
-            sortKey: { name: 'reviewDate', type: dynamodb.AttributeType.STRING },
-            tableName: 'MovieReviews',
-            removalPolicy: cdk.RemovalPolicy.DESTROY,
-          });
+   
+        this.movieReviewsTable = new dynamodb.Table(this, 'MovieReviews', {
+          billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+          partitionKey: { name: 'movieId', type: dynamodb.AttributeType.NUMBER },
+          sortKey: { name: 'reviewerName', type: dynamodb.AttributeType.STRING },
+          tableName: 'MovieReviews',
+          removalPolicy: cdk.RemovalPolicy.DESTROY,
+        });
         
           // Global Secondary Index for ReviewerId
           this.movieReviewsTable.addGlobalSecondaryIndex({
