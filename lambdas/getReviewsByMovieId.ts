@@ -50,7 +50,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
 };
 
 function createDynamoDBDocClient() {
-  const ddbClient = new DynamoDBClient({ region: process.env.AWS_REGION });
+  const ddbClient = new DynamoDBClient({ region: process.env.REGION });
   const translateConfig = {
     marshallOptions: {
       convertEmptyValues: true,

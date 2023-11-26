@@ -4,7 +4,6 @@ import * as custom from "aws-cdk-lib/custom-resources";
 import { Construct } from "constructs";
 import { generateBatch } from "../shared/util";
 import { movieReviews } from '../seed/reviews';
-import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { userData } from "../seed/users";
 
 export class DynamoDBStack extends cdk.Stack {

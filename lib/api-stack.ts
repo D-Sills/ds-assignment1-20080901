@@ -24,7 +24,7 @@ export class ApiStack extends cdk.Stack {
             stageName: 'dev',
           },
           
-          // 👇 enable CORS
+          // enable CORS
           defaultCorsPreflightOptions: {
             allowHeaders: ["Content-Type", "X-Amz-Date"],
             allowMethods: ["OPTIONS", "GET", "POST", "PUT", "PATCH", "DELETE"],
@@ -82,14 +82,34 @@ export class ApiStack extends cdk.Stack {
           }
           );
           
-  
+        const addReviewFn = new lambdanode.NodejsFunction(
+          this,
+          "AddReviewFunction",
+          {
+            architecture: lambda.Architecture.ARM_64,
+            runtime: lambda.Runtime.NODEJS_16_X,
+            entry: `${__dirname}/../lambdas/addReview.ts`,
+            timeout: cdk.Duration.seconds(10),
+            memorySize: 128,
+            environment: {
+              TABLE_NAME: databaseStack.movieReviewsTable.tableName,
+              REGION: 'eu-west-1',
+            },
+          }
+          );
       
           const moviesResource = api.root.addResource('movies');
+      
+          const movieAddReviewResource = moviesResource.addResource('review');
+          movieAddReviewResource.addMethod('POST', new apig.LambdaIntegration(addReviewFn));
       
        // Resource for '/{movieId}/reviews'
        const movieResource = moviesResource.addResource('{movieId}');
        const movieReviewsResource = movieResource.addResource('reviews');
        movieReviewsResource.addMethod('GET', new apig.LambdaIntegration(getRevievsByMovieIdFn));
+       
+      
+      
       
             // Sub-resource for reviewerName or year
       const reviewParameterResource = movieReviewsResource.addResource('{parameter}');
@@ -106,6 +126,8 @@ export class ApiStack extends cdk.Stack {
       databaseStack.movieReviewsTable.grantReadData(getRevievsByMovieIdFn);
       databaseStack.movieReviewsTable.grantReadData(getReviewsByMovieIdAndParameterFn);
       databaseStack.movieReviewsTable.grantReadData(getReviewsByReviewerFn);
+      databaseStack.movieReviewsTable.grantWriteData(addReviewFn);
+      
       }
     }
     
